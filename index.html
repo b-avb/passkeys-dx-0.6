@@ -19,7 +19,7 @@
       XcmProgramsExecutor,
       globallyInjectPrograms,
       Pass
-    } from "http://127.0.0.1:8080/dist/xcm-programs.js";
+    } from "http://127.0.0.1:8081/dist/xcm-programs.js";
     // } from "https://unpkg.com/@virtonetwork/xcm-programs@latest/dist/xcm-programs.js";
 
     const executor = new XcmProgramsExecutor({
@@ -46,6 +46,7 @@
       // Define origin and user information
       const user = {
         id: hashedUserId,
+        name: 'testuser',
         displayName: "Test User",
       };
 
@@ -57,6 +58,7 @@
           },
           user: {
             id: user.id,
+            name: user.displayName,
             displayName: user.displayName,
           },
           challenge,
@@ -74,7 +76,7 @@
         },
       };
 
-      let attestationResponse = await navigator.credentials.create(ORIGIN, attestationOptions);
+      const attestationResponse = await navigator.credentials.create(attestationOptions);
       console.log("here after attestation")
 
       console.log({ attestationResponse })
@@ -87,7 +89,7 @@
       const pass = new Pass(kreivoApi);
 
 
-      const tx = await pass.register(
+      const [tx] = await pass.register(
         blockNumber,
         hashedUserId,
         new Uint8Array(attestationResponse.rawId),
@@ -95,7 +97,7 @@
         new Uint8Array(attestationResponse.response.clientDataJSON)
       );
 
-      console.log("here after tx", tx.to)
+      console.log("here after tx", tx.method.toHuman())
     }
   </script>
 </body>
