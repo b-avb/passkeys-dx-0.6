@@ -19,7 +19,7 @@
       XcmProgramsExecutor,
       globallyInjectPrograms,
       Pass
-    } from "http://127.0.0.1:8081/dist/xcm-programs.js";
+    } from "http://127.0.0.1:8080/dist/xcm-programs.js";
     // } from "https://unpkg.com/@virtonetwork/xcm-programs@latest/dist/xcm-programs.js";
 
     const executor = new XcmProgramsExecutor({
@@ -29,16 +29,25 @@
     });
 
     globallyInjectPrograms(executor);
-    globalThis.initPass = async () => {
-      const ORIGIN = "https://example.com";
-      const hashedUserId = new Uint8Array(
+    
+    let kreivoApi;
+    let hashedUserId;
+
+    globalThis.initKreivo = async () => {
+      kreivoApi = await executor.getKreivoAPI();
+      console.dir(kreivoApi)
+
+      hashedUserId = new Uint8Array(
         await crypto.subtle.digest(
           "SHA-256",
           new TextEncoder().encode("testuser@example.com")
         )
       );
+    }
 
-      let kreivoApi = await executor.getKreivoAPI();
+    globalThis.initPass = async () => {
+      const ORIGIN = "https://virto.network";
+      
       console.dir(kreivoApi)
 
       const [challenge, blockNumber] = await Pass.generateChallenge(kreivoApi);
@@ -79,7 +88,7 @@
       const attestationResponse = await navigator.credentials.create(attestationOptions);
       console.log("here after attestation")
 
-      console.log({ attestationResponse })
+      console.dir({ attestationResponse })
 
       console.log(attestationResponse.rawId)
       console.log(attestationResponse.response.getAuthenticatorData())
@@ -89,7 +98,7 @@
       const pass = new Pass(kreivoApi);
 
 
-      const [tx] = await pass.register(
+      const tx = await pass.register(
         blockNumber,
         hashedUserId,
         new Uint8Array(attestationResponse.rawId),
@@ -97,7 +106,41 @@
         new Uint8Array(attestationResponse.response.clientDataJSON)
       );
 
-      console.log("here after tx", tx.method.toHuman())
+      console.log("here after tx", tx)
+    }
+
+    globalThis.loginPass = async () => {      
+      console.dir(kreivoApi)
+      const [challenge, blockNumber] = await Pass.generateChallenge(kreivoApi);
+
+      // Define attestation options
+      const assertionOptions = {
+        publicKey: {
+          challenge,
+          userVerification: "preferred",
+          timeout: 60_000,
+        },
+      };
+      // Generate attestation response
+      const assertionResponse = await navigator.credentials.get(assertionOptions);
+      console.log(assertionResponse)
+      // Authenticate pass
+      const pass = new Pass(kreivoApi);
+
+      const tx = await pass.authenticate(
+        blockNumber,
+        hashedUserId,
+        new Uint8Array(assertionResponse.rawId),
+        new Uint8Array(assertionResponse.response.authenticatorData),
+        new Uint8Array(assertionResponse.response.clientDataJSON),
+        new Uint8Array(assertionResponse.response.signature)
+      );
+
+      console.log("here after tx", tx)
+    }
+
+    globalThis.dispatchPass = async () => {
+
     }
   </script>
 </body>
