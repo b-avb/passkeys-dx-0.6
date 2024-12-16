@@ -45,7 +45,7 @@ pub fn Hero() -> Element {
                 onclick: move |_| {
                     initKreivo()
                 },
-                "Init passkeys",
+                "Init Kreivo",
             }
             button {
                 onclick: move |_| {

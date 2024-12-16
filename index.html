@@ -19,7 +19,7 @@
       XcmProgramsExecutor,
       globallyInjectPrograms,
       Pass
-    } from "http://127.0.0.1:8080/dist/xcm-programs.js";
+    } from "http://127.0.0.1:8000/dist/xcm-programs.js";
     // } from "https://unpkg.com/@virtonetwork/xcm-programs@latest/dist/xcm-programs.js";
 
     const executor = new XcmProgramsExecutor({
@@ -29,7 +29,7 @@
     });
 
     globallyInjectPrograms(executor);
-    
+
     let kreivoApi;
     let hashedUserId;
 
@@ -46,10 +46,6 @@
     }
 
     globalThis.initPass = async () => {
-      const ORIGIN = "https://virto.network";
-      
-      console.dir(kreivoApi)
-
       const [challenge, blockNumber] = await Pass.generateChallenge(kreivoApi);
 
       // Define origin and user information
@@ -98,18 +94,20 @@
       const pass = new Pass(kreivoApi);
 
 
-      const tx = await pass.register(
+      const [tx, ext] = await pass.register(
         blockNumber,
         hashedUserId,
         new Uint8Array(attestationResponse.rawId),
         new Uint8Array(attestationResponse.response.getAuthenticatorData()),
-        new Uint8Array(attestationResponse.response.clientDataJSON)
+        new Uint8Array(attestationResponse.response.clientDataJSON),
+        new Uint8Array(attestationResponse.response.getPublicKey())
       );
 
-      console.log("here after tx", tx)
+      console.log("here after tx", tx.method.toHuman())
+      console.log("here after ext", ext)
     }
 
-    globalThis.loginPass = async () => {      
+    globalThis.loginPass = async () => {
       console.dir(kreivoApi)
       const [challenge, blockNumber] = await Pass.generateChallenge(kreivoApi);
 
